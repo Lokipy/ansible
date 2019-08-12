@@ -1,0 +1,39 @@
+---
+- hosts: all
+ 
+  tasks:
+    - name: disable selinux、firewalls,replace ali sources
+      shell: |
+        sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+        systemctl disable firewalld
+ 
+    - name: ensure a list of packages installed
+      yum:
+        name: "{{ packages }}"
+      vars:
+        packages:
+        - wget
+        - vim
+        - sysstat
+        - lrzsz
+        - lsof
+ 
+    - name: Add the user centos
+      user:
+        name: centos
+        group: wheel
+ 
+    - name:  disabled root remote login
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: '\#PermitRootLogin yes'
+        replace: 'PermitRootLogin no'
+        backup: yes
+ 
+    - name: modify ssh port
+      shell: sed -i '/^\#Port/a\Port 22' /etc/ssh/sshd_config
+ 
+    - name: restart ssh
+      service:
+        name: sshd
+        state: restarted

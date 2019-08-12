@@ -1,0 +1,12 @@
+[Unit]
+Description=The redis-server Process Manager
+After=syslog.target network.target
+
+[Service]
+Type=forking
+PIDFile=/apps/redis/proc/redis.pid
+ExecStart=/apps/redis/bin/redis-server /apps/redis/conf/redis.conf
+ExecStop=/apps/redis/bin/redis-cli -p 15279 -a '5SWEY#Dk' shutdown
+
+[Install]
+WantedBy=multi-user.target
