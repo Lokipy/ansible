@@ -1,9 +1,0 @@
-- hosts: all
-  user: root
-  vars:
-     zabbix_serverip: 10.21.0.135
-     zabbix_activeip: 10.21.0.135
-     agent_hostname: '{{ ansible_hostname }}'
-     agent_ip: '{{ ansible_eth1.ipv4.address }}'
-  roles:
-    - zabbix_agent
