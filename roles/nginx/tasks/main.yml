@@ -1,0 +1,36 @@
+- name: yum pkg
+  yum: 
+    name: ['make', 'zlib', 'zlib-devel', 'gcc-c++', 'libtool', 'openssl', 'openssl-devel', 'pcre']
+  
+- name: judge pkg is exists
+  shell: ls /opt/nginx-1.17.4.tar.gz
+  ignore_errors: yes
+  register: pkg_result
+
+#- name: shell module return values
+#  debug:
+#    var: pkg_result.failed
+
+- name: download pkg
+  get_url:
+    url: http://nginx.org/download/nginx-1.17.4.tar.gz
+    dest: /opt
+  when: pkg_result.failed == true
+    
+- name: install nginx
+  shell: |
+      cd /opt
+      tar -xzvf nginx-1.17.4.tar.gz
+      cd nginx-1.17.4
+      ./configure --prefix=/opt/nginx --with-http_ssl_module --with-http_dav_module --with-http_flv_module --with-http_realip_module --with-http_stub_status_module 
+      make
+      make install
+  
+- name: up systemctl conf client
+  template: src=nginx.service.j2 dest=/usr/lib/systemd/system/nginx.service
+  
+- name: enabled service nginx
+  service: name=nginx enabled=yes
+  
+- name: start  service nginx
+  service: name=nginx  state=started

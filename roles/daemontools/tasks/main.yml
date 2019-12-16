@@ -1,0 +1,21 @@
+- name: install zabbix-agend
+  copy: src=daemontools-0.76.tar.gz dest=/tmp 
+
+- name: create directory if it does not exist
+  file:
+    path: /opt/package
+    state: directory
+    mode: 1755
+
+- name: install mysql
+  shell: |
+      tar xvf /tmp/daemontools-0.76.tar.gz -C /opt/package
+      cd /opt/package/admin/daemontools-0.76
+      echo "gcc -O2 -include /usr/include/errno.h" > src/conf-cc 
+      package/install
+
+- name: up systemctl conf client
+  template: src=daemontools.service.j2 dest=/etc/systemd/system/daemontools.service
+
+- name: enable daemontools
+  service: name=daemontools enabled=yes

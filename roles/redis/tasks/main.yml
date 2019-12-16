@@ -1,0 +1,54 @@
+- name: download pkg
+  get_url:
+    url: http://download.redis.io/releases/redis-5.0.3.tar.gz
+    dest: /opt
+- name: create directory if it does not exist
+  file:
+    path: /apps/redis/{{ item }}
+    state: directory
+  with_items:
+  - [ bin, proc, conf, log, data ]
+- name: yum pkg
+  yum: name={{ item }}
+  with_items:
+    - make
+    - gcc-c++
+- name: install redis
+  shell: |
+      cd /opt
+      tar -xzvf redis-5.0.3.tar.gz
+      cd redis-5.0.3/
+      make
+      cd src/
+      make install
+      cp redis-benchmark mkreleasehdr.sh redis-cli redis-sentinel redis-server /apps/redis/bin/
+- name: insert txt in /etc/sysctl.conf
+  blockinfile:
+      path: /etc/sysctl.conf
+      block: |
+          net.core.somaxconn = 551
+          vm.overcommit_memory = 1
+- name: insert txt in /etc/security/limits.conf
+  blockinfile:
+      path: /etc/security/limits.conf
+      block: |
+          *        hard    nofile           65536
+          *        soft    nofile           65536
+- name: insert txt in /etc/rc.local
+  blockinfile:
+      path: /etc/rc.local
+      block: |
+          if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+              echo never > /sys/kernel/mm/transparent_hugepage/enabled
+          fi
+          if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+              echo never > /sys/kernel/mm/transparent_hugepage/defrag
+          fi
+- name: up redis conf client
+  template: src=redis.conf.j2 dest=/apps/redis/conf/redis.conf
+- name: up systemctl conf client
+  template: src=redis-server.service.j2 dest=/usr/lib/systemd/system/redis-server.service
+- name: enabled service redis-server
+  service: name=redis-server enabled=yes
+- name: start  service redis-server
+  service: name=redis-server  state=started

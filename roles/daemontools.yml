@@ -1,0 +1,4 @@
+- hosts: dev
+  user: root
+  roles:
+    - daemontools

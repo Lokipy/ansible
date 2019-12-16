@@ -1,0 +1,77 @@
+- hosts: new
+  user: root
+  vars:
+     zabbix_serverip: ****
+     zabbix_activeip: ****
+     agent_hostname: '{{ ansible_hostname }}'
+     agent_ip: '{{ ansible_eth1.ipv4.address }}'
+  roles:
+    - zabbix_agent
+
+- name: yum update
+  yum: name=* state=latest
+
+- name: yum Development Tools
+  yum:
+    name: "@Development tools"
+    state: present
+
+- name: yum packages
+  yum:
+    name: [ 'libevent-devel', 'zlib-devel', 'openssl-devel', 'python-devel' ]
+
+- name: copy Python-3.8.0.tgz
+  copy:
+    src: "{{ item }}"
+    dest: /tmp
+  with_items:
+    - autoconf-2.69.tar.gz
+    - bison-2.5.1.tar.gz
+    - boost_1_56_0.tar.gz
+    - thrift-0.13.0.tar.gz
+    - automake-1.14.tar.gz
+
+- name: install autoconf-2.69
+  shell: |
+      cd /tmp
+      tar xvf autoconf-2.69.tar.gz
+      cd autoconf-2.69
+      ./configure --prefix=/usr
+      make
+      make install
+
+- name: insert /usr/local/python3/lib/python3.8/site-packages/deps.pth
+  blockinfile:
+      path: /usr/local/python3/lib/python3.8/site-packages/deps.pth
+      block: |
+          /opt/appuser/datacenter
+          /opt/appuser/util
+          /opt/appuser/thrift-gen
+      create: yes
+# 文件不存在需要创建, 使用create参数
+
+- name: enabled service
+  service: name=daemontools enabled=yes
+
+- name: start  service
+  service: name=daemontools state=restarted
+
+- name: create directory it does not exist
+  file:
+    path: /opt/package
+    state: directory
+    mode: 1755
+
+- name: judge pkg is exists
+  shell: ls /opt/nginx-1.17.4.tar.gz
+  ignore_errors: yes
+  register: pkg_result
+
+- name: download pkg
+  get_url:
+    url: http://nginx.org/download/nginx-1.17.4.tar.gz
+    dest: /opt
+  when: pkg_result.failed == true
+
+- name: up systemctl conf client
+  template: src=nginx.service.j2 dest=/usr/lib/systemd/system/nginx.service

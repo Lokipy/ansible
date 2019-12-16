@@ -1,0 +1,5 @@
+wget http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+wget http://ftp.gnu.org/gnu/bison/bison-2.5.1.tar.gz
+wget http://sourceforge.net/projects/boost/files/boost/1.56.0/boost_1_56_0.tar.gz
+wget http://apache.fayea.com/thrift/0.13.0/thrift-0.13.0.tar.gz
+wget http://ftp.gnu.org/gnu/automake/automake-1.14.tar.gz

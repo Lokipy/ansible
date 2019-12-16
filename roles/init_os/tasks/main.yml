@@ -1,0 +1,84 @@
+- name: wget
+  yum: name=wget
+
+- name: ali repo
+  shell: |
+      mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+      wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+      wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+      yum clean all
+      yum makecache
+      sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+      setenforce 0
+
+- name: insert txt in /etc/sysctl.conf
+  blockinfile:
+      path: /etc/rc.local
+      block: |
+          ulimit -SHn 102400
+
+- name: insert txt in /etc/sysctl.conf
+  blockinfile:
+      path: /etc/security/limits.conf
+      block: |
+          *    soft    nofile    65536
+          *    hard    nofile    65536
+          *    soft    nproc    65536
+          *    hard    nproc    65536
+
+- name: insert txt in /etc/sysctl.conf
+  blockinfile:
+      path: /etc/security/limits.d/20-nproc.conf
+      block: |
+          *       soft    nproc   65536
+          *       hard    nproc   65536
+
+- name: match date
+  systemd: name=firewalld state=stopped
+
+- name: yum pkg
+  yum:
+    name: ['lsof', 'gcc', 'make', 'libevent-devel', 'ncurses-devel', 'ntp', 'mysql', 'wget', 'vim', 'telnet']
+
+- name: match date
+  systemd: name=ntpd state=started enabled=yes
+ 
+#- name: distribute tmux file
+#  copy: src=tmux-2.9a.tar.gz dest=/tmp
+#
+#- name: install tmux
+#  shell: |
+#      cd /tmp
+#      tar xvf tmux-2.9a.tar.gz
+#      cd tmux-2.9a
+#      ./configure
+#      make
+#      make install
+#
+#- name: distribute tmux conf
+#  template: src=tmux.conf.j2 dest=/etc/tmux.conf
+
+- name: insert txt in /etc/sysctl.conf
+  blockinfile:
+      path: /etc/sysctl.conf 
+      block: |
+          vm.swappiness = 0
+          net.ipv4.neigh.default.gc_stale_time = 120
+          net.ipv4.conf.all.rp_filter = 0
+          net.ipv4.conf.default.rp_filter = 0
+          net.ipv4.conf.default.arp_announce = 2
+          net.ipv4.conf.lo.arp_announce = 2
+          net.ipv4.conf.all.arp_announce = 2
+          net.ipv4.tcp_max_tw_buckets = 5000
+          net.ipv4.tcp_syncookies = 1
+          net.ipv4.tcp_max_syn_backlog = 1024
+          net.ipv4.tcp_synack_retries = 2
+          net.ipv6.conf.all.disable_ipv6 = 1
+          net.ipv6.conf.default.disable_ipv6 = 1
+          net.ipv6.conf.lo.disable_ipv6 = 1
+          kernel.sysrq = 1
+          net.ipv4.tcp_fin_timeout = 10
+          net.ipv4.tcp_tw_recycle = 1
+          net.ipv4.tcp_tw_reuse = 1
+          net.core.somaxconn=32768
+

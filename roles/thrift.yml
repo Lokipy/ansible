@@ -1,0 +1,4 @@
+- hosts: api02
+  user: root
+  roles:
+    - thrift
