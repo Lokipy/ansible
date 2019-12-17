@@ -1,0 +1,2 @@
+# 获取远程系统信息
+ansible hostname -m setup

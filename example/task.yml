@@ -7,7 +7,10 @@
      agent_ip: '{{ ansible_eth1.ipv4.address }}'
   roles:
     - zabbix_agent
+  gather_facts: no
+# 参数:gather_facts, 关闭fact数据获取, 即setup相关数据, 提高push效率
 
+# yum
 - name: yum update
   yum: name=* state=latest
 
@@ -20,6 +23,7 @@
   yum:
     name: [ 'libevent-devel', 'zlib-devel', 'openssl-devel', 'python-devel' ]
 
+# copy
 - name: copy Python-3.8.0.tgz
   copy:
     src: "{{ item }}"
@@ -31,6 +35,7 @@
     - thrift-0.13.0.tar.gz
     - automake-1.14.tar.gz
 
+# shell
 - name: install autoconf-2.69
   shell: |
       cd /tmp
@@ -40,6 +45,7 @@
       make
       make install
 
+# blockinfile
 - name: insert /usr/local/python3/lib/python3.8/site-packages/deps.pth
   blockinfile:
       path: /usr/local/python3/lib/python3.8/site-packages/deps.pth
@@ -48,24 +54,31 @@
           /opt/appuser/util
           /opt/appuser/thrift-gen
       create: yes
-# 文件不存在需要创建, 使用create参数
+# 参数:create, 文件不存在需要创建, 使用create参数
 
+# service
 - name: enabled service
   service: name=daemontools enabled=yes
 
 - name: start  service
   service: name=daemontools state=restarted
 
+# file
 - name: create directory it does not exist
   file:
     path: /opt/package
     state: directory
     mode: 1755
 
+# 注册变量
 - name: judge pkg is exists
   shell: ls /opt/nginx-1.17.4.tar.gz
   ignore_errors: yes
   register: pkg_result
+
+- name: shell module return values
+  debug:
+    var: pkg_result.failed
 
 - name: download pkg
   get_url:
@@ -73,5 +86,6 @@
     dest: /opt
   when: pkg_result.failed == true
 
+# j2
 - name: up systemctl conf client
   template: src=nginx.service.j2 dest=/usr/lib/systemd/system/nginx.service
