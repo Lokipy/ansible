@@ -89,3 +89,13 @@
 # j2
 - name: up systemctl conf client
   template: src=nginx.service.j2 dest=/usr/lib/systemd/system/nginx.service
+  
+# lineinfile
+- name: replace txt
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin'
+    line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
+# 参数insertbefore：在此之前添加
+# 参数insertafter：在此之后添加
+# 参数state: absent删除
